@@ -269,6 +269,10 @@ export class AppComponent {
 
 ### Custom authentication strategies
 
+```sh
+ng new component SignupComponent
+```
+
 The `Authenticator` Component is a really easy way to get up and running with authentication, but in a real-world application we probably want more control over how our form looks & functions.
 
 Let's look at how we might create our own authentication flow.
@@ -296,8 +300,19 @@ We'd also need to have a method that signed up & signed in users. We can us the 
 ```js
 import Auth from '@aws-amplify/auth';
 
+import {
+  OnInit,
+} from '@angular/core'
+
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+}               from '@angular/forms'
+
 export class SignupComponent implements OnInit {
   public signup: FormGroup;
+  public success: boolean;
 
   constructor(
     private fb: FormBuilder,
