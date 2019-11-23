@@ -8,6 +8,8 @@ In this workshop we'll learn how to build cloud-enabled web applications with An
 
 - [Authentication](#adding-authentication)
 - [GraphQL API with AWS AppSync](#adding-a-graphql-api)
+- [Mocking and Testing](#local-mocking-and-testing)
+- [Predictions](#adding-predictions)
 - [Hosting](#hosting)
 - [Multiple Environments](#working-with-multiple-environments)
 - [Deploying via the Amplify Console](#amplify-console)
@@ -78,6 +80,7 @@ Next, we'll install the AWS Amplify CLI:
 ```bash
 npm install -g @aws-amplify/cli
 ```
+> If your installation fails. Try `npm install -g @aws-amplify/cli --unsafe-perm=true`.
 > If you have issues related to fsevents with npm install. Try: `npm audit fix --force`.
 
 Now we need to configure the CLI with our credentials:
@@ -151,7 +154,15 @@ Now, we'll run the push command and the cloud resources will be created in our A
 
 ```bash
 amplify push
+
+Current Environment: dev
+
+| Category | Resource name      | Operation | Provider plugin   |
+| -------- | ------------------ | --------- | ----------------- |
+| Auth     | amplifyappuuid     | Create    | awscloudformation |
+? Are you sure you want to continue? Yes
 ```
+
 
 To quickly check your newly created __Cognito User Pool__ you can run
 
@@ -219,7 +230,7 @@ Also include these imports to the top of `styles.css`
 @import "~@aws-amplify/ui/src/Angular.css";
 ```
 
-In order to use the Authenticator Component add it to __src/app.component.html__:
+In order to use the Authenticator Component replace all content in __src/app.component.html__ with:
 
 ```html
 <amplify-authenticator></amplify-authenticator>
@@ -318,11 +329,19 @@ Answer the following questions
 
 - Please select from one of the below mentioned services __GraphQL__
 - Provide API name: __RestaurantAPI__
-- Choose an authorization type for the API __API key__
+- Choose the default authorization type for the API __API key__
+- Enter a description for the API key: __(empty)__
+- After how many days from now the API key should expire (1-365): __180__
+- Do you want to configure advanced settings for the GraphQL API __Yes, I want to make some additional changes.__
+- Choose the additional authorization types you want to configure for the API (Press &lt;space&gt; to select, &lt;a&gt; to 
+toggle all, &lt;i&gt; to invert selection) __None__
 - Do you have an annotated GraphQL schema? __No__
 - Do you want a guided schema creation? __Yes__
 - What best describes your project: __Single object with fields (e.g., “Todo” with ID, name, description)__
 - Do you want to edit the schema now? __Yes__
+
+> To select none just press `Enter`.
+
 
 > When prompted, update the schema to the following:   
 
@@ -347,10 +366,10 @@ amplify push
 - Are you sure you want to continue? __Yes__
 - Do you want to generate code for your newly created GraphQL API __Yes__
 - Choose the code generation language target __angular__
-- Enter the file name pattern of graphql queries, mutations and subscriptions __src/graphql/**/*.ts__
+- Enter the file name pattern of graphql queries, mutations and subscriptions __src/graphql/**/*.graphql__
 - Do you want to generate/update all possible GraphQL operations - queries, mutations and subscriptions __Yes__
 - Enter maximum statement depth [increase from default if your schema is deeply nested] __2__
-- Enter the file name for the generated code __src/API.ts__
+- Enter the file name for the generated code __src/app/API.service.ts__
 
 Notice your __GraphQL endpoint__ and __API KEY__.
 
@@ -362,6 +381,23 @@ amplify console api
 
 - Please select from one of the below mentioned services __GraphQL__
 
+### Local mocking and testing
+
+To mock and test the API locally, you can run the `mock` command:
+
+```sh
+amplify mock api
+```
+> Note: local mocking requires Java SDK
+
+- Choose the code generation language target: __javascript__
+- Enter the file name pattern of graphql queries, mutations and subscriptions: __src/graphql/**/*.js__
+- Do you want to generate/update all possible GraphQL operations - queries, mutations and subscriptions: __Y__
+- Enter maximum statement depth [increase from default if your schema is deeply nested]: __2__
+
+This should open up the local GraphiQL editor.
+
+From here, we can now test the API locally.
 
 ### Adding mutations from within the AWS AppSync Console
 
@@ -517,8 +553,131 @@ export class HomeComponent implements OnInit {
       const newRestaurant = event.value.data.onCreateRestaurant;
       this.restaurants = [newRestaurant, ...this.restaurants];
     });
+```
+
+## Adding Predictions
+
+To add the predictions category to our Amplify project, we can use the following command:
+
+```sh
+amplify add predictions
+```
+
+#### Identify Text, Labels and Entities
+- Please select from one of the categories below __Identify__
+- What would you like to identify? __Identify Text__
+- Provide a friendly name for your resource __identifyTextId__
+- Would you also like to identify documents? __No__
+- Who should have access? __Auth and Guest users__
+
+#### Translate Text
+- Please select from one of the categories below __Convert__
+- What would you like to convert? __Translate text into a different language__
+- Provide a friendly name for your resource __translateTextId__
+- What is the source language? __English__
+- What is the target language? __Spanish__
+- Who should have access? __Auth and Guest users__
+
+#### Generate Speech
+- Please select from one of the categories below __Convert__
+- What would you like to convert? __Generate speech audio from text__
+- Provide a friendly name for your resource __speechGeneratorId__
+- What is the source language? __British English__
+- Select a speaker __Brian - Male__
+- Who should have access? __Auth and Guest users__
+
+#### Transcribe Audio
+- Please select from one of the categories below __Convert__
+- What would you like to convert? __Transcribe text from audio__
+- Provide a friendly name for your resource __transcriptiondId__
+- What is the source language? __British English__
+- Who should have access? __Auth and Guest users__
+
+#### Interpret Text
+- Please select from one of the categories below __Interpret__
+- What would you like to interpret? __Interpret Text__
+- Provide a friendly name for your resource __interpretTextId__
+- What kind of interpretation would you like? __All__
+- Who should have access? __Auth and Guest users__
+
+
+Now, we'll run the push command and the cloud resources will be created in our AWS account.
+
+```bash
+amplify push
+```
+
+### Configuring the Vue Application
+
+Now, our resources are created & we can start using them!
+
+To configure the app, open __main.js__ and add the following code below the last import:
+
+```js
+import Predictions, { AmazonAIPredictionsProvider } from '@aws-amplify/predictions';
+Predictions.addPluggable(new AmazonAIPredictionsProvider());
+```
+
+Now, our app is ready to start using **Predictions**.
+
+#### Translate Example
+
+The result of `Predictions.convert(config)` will be a promise. If successful will return the translation otherwise will return the input as-is.
+
+```
+Predictions.convert({
+  translateText: {
+    source: {
+      text: "My taylor is rich!",
+      language: "en"
+    },
+    targetLanguage: "es"
   }
-}
+})
+.then(({text}) => {
+  this.translation = text;
+})
+```
+> List of [supported languages](https://docs.aws.amazon.com/translate/latest/dg/how-it-works.html#how-it-works-language-codes) to translate from.
+
+#### Detect Language Example
+
+The result of `Predictions.interpret(config)` call will return a promise. If successful, we will be able to pick the main language as part of the results as demonstrated in the following code snipet.
+
+```
+Predictions.interpret({
+  text: {
+    source: {
+      text: textToInterpret,
+    },
+    type: InterpretTextCategories.LANGUAGE
+  }
+})
+.then((result) => {
+  let detected = result.textInterpretation.language;
+})
+```
+
+#### Text to Speech Example
+
+The result of `Predictions.convert(config)` call will return a promise with the resulting audio file which we can reference to play the voice using *HMTL Audio*.
+
+```
+Predictions.convert({
+  textToSpeech: {
+    source: {
+      text: textToTranslate,
+    },
+    voiceId: "Brian"
+  }
+})
+.then((result) => {
+  if (result.speech.url) {
+    this.audio = new Audio();
+    this.audio.src = result.speech.url;
+    this.audio.play();
+  }
+})
 ```
 
 ## Hosting
@@ -617,7 +776,7 @@ git commit -m 'initial commit'
 git push origin master
 ```
 
-Next we'll visit the Amplify Console in our AWS account at [https://us-east-1.console.aws.amazon.com/amplify/home](https://us-east-1.console.aws.amazon.com/amplify/home).
+Next we'll visit the Amplify Console in our AWS account at [https://ap-northeast-1.console.aws.amazon.com/amplify/home](https://ap-northeast-1.console.aws.amazon.com/amplify/home).
 
 Here, we'll click __Get Started__ to create a new deployment. Next, authorize Github as the repository service.
 
