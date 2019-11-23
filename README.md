@@ -12,7 +12,8 @@ In this workshop we'll learn how to build cloud-enabled web applications with An
 - [Predictions](#adding-predictions)
 - [Hosting](#hosting)
 - [Multiple Environments](#working-with-multiple-environments)
-- [Deploying via the Amplify Console](#amplify-console)
+- [Deploying via the Amplify Console](#deploying-via-the-amplify-console)
+- [Run locally via Amplify CLI](#run-locally-with-the-amplify-cli)
 - [Removing / Deleting Services](#removing-services)
 
 ## Pre-requisites
@@ -788,6 +789,26 @@ Finally, we can click __Save and Deploy__ to deploy our application!
 
 Now, we can push updates to Master to update our application.
 
+## Run locally with the Amplify CLI
+
+1. Install and configure the Amplify CLI
+
+```
+  npm install -g @aws-amplify/cli
+  amplify configure
+```
+
+2. Install and configure the Amplify CLI
+
+```
+  amplify init --app https://github.com/gsans/ng-china-workshop-solution
+```
+  
+>The init command clones the GitHub repo, initializes the CLI, creates a ‘sampledev’ environment in CLI, detects and adds categories, provisions the backend, pushes the changes to the cloud, and starts the app.
+
+3. Provisioning the frontend and backend
+
+Once the process is complete, the CLI will automatically open the app in your default browser.
 
 ## Removing Services
 
@@ -795,7 +816,6 @@ If at any time, or at the end of this workshop, you would like to delete a servi
 
 ```sh
 amplify remove auth
-
 amplify push
 ```
 
